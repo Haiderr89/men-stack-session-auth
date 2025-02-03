@@ -2,6 +2,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const express = require("express");
 const app = express();
+const session = require('express-session');
 
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
@@ -32,6 +33,13 @@ app.use(morgan('dev'));
 //Middleware
 app.use(express.urlencoded({extended: false})) // parsing the form data
 app.use(express.static(path.join(__dirname, "public")));
+app.use(
+    session({
+      secret: process.env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: true,
+    })
+  );
 
 //-----------------------------------------------------
 
@@ -40,6 +48,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const pagesCtrl = require('./controllers/pages');
 const authCtrl = require('./controllers/auth');
 const exp = require("constants");
+const vipCtrl = require('./controllers/vip');
 
 
 //-----------------------------------------------------
@@ -56,6 +65,9 @@ app.get("/auth/sign-in", authCtrl.signInForm);
 
 app.post("/auth/sign-in", authCtrl.signIn);
 
+app.get('/auth/sign-out', authCtrl.signOut);
+
+app.get('/vip-lounge', vipCtrl.welcome)
 
 //-----------------------------------------------------
 app.listen(port, () => {
