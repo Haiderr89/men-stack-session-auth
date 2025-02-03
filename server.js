@@ -7,6 +7,9 @@ const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const morgan = require("morgan");
 
+//for css
+const path = require("path");
+
 // Set the port from environment variable or default to 3000
 const port = process.env.PORT ? process.env.PORT : "3000";
 
@@ -26,14 +29,32 @@ app.use(morgan('dev'));
 
 //-----------------------------------------------------
 
+//Middleware
+app.use(express.urlencoded({extended: false})) // parsing the form data
+app.use(express.static(path.join(__dirname, "public")));
+
+//-----------------------------------------------------
+
+
 // Controllers
 const pagesCtrl = require('./controllers/pages');
+const authCtrl = require('./controllers/auth');
+const exp = require("constants");
 
+
+//-----------------------------------------------------
 
 // GET /
 app.get("/", pagesCtrl.home);
 
+app.get("/auth/sign-up", authCtrl.signUp);
 
+// send form request
+app.post("/auth/sign-up", authCtrl.addUser);
+
+app.get("/auth/sign-in", authCtrl.signInForm);
+
+app.post("/auth/sign-in", authCtrl.signIn);
 
 
 //-----------------------------------------------------
