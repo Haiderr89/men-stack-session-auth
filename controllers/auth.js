@@ -27,11 +27,16 @@ const addUser = async (req, res) => {
     }
     const hashedPassword = bcrypt.hashSync(req.body.password, 10);
     req.body.password = hashedPassword;
-
     // validation logic
 
     const user = await User.create(req.body);
-    res.send(`Thanks for signing up ${user.username}`);
+    req.session.user = {
+        username: userInDatabase.username,
+    };
+        
+    req.session.save(() => {
+        res.redirect("/");
+    })
 
 }
 
@@ -72,9 +77,10 @@ const signIn = async (req, res) => {
     req.session.user = {
         username: userInDatabase.username,
     };
-    console.log('req.session: ', req.session);
-    
-    res.redirect("/");
+
+    req.session.save(() => {
+        res.redirect("/");
+    })
     
 }
 

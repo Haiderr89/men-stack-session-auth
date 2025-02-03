@@ -1,15 +1,18 @@
 const dotenv = require("dotenv");
+// import MongoStore from './node_modules/connect-mongo/src/lib/MongoStore';
 dotenv.config();
 const express = require("express");
 const app = express();
 const session = require('express-session');
+const MongoStore = require('connect-mongo')
 
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const morgan = require("morgan");
-
 //for css
 const path = require("path");
+const isSignedIn = require("./middleware/is-signed-in.js");
+const passUserToView = require("./middleware/pass-user-to-view.js");
 
 // Set the port from environment variable or default to 3000
 const port = process.env.PORT ? process.env.PORT : "3000";
@@ -38,9 +41,19 @@ app.use(
       secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: true,
+      store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI,
+        ttl: 7 * 24 * 60 * 60 // 1 week in seconds
+      }),
+      cookie:{
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week in milliseconds
+        httpOnly: true,
+        secure: false,
+      }
     })
-  );
+);
 
+app.use(passUserToView);
 //-----------------------------------------------------
 
 
@@ -67,7 +80,7 @@ app.post("/auth/sign-in", authCtrl.signIn);
 
 app.get('/auth/sign-out', authCtrl.signOut);
 
-app.get('/vip-lounge', vipCtrl.welcome)
+app.get("/vip-lounge", isSignedIn, vipCtrl.welcome);
 
 //-----------------------------------------------------
 app.listen(port, () => {
